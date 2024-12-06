@@ -137,7 +137,6 @@ fn make_pass_rules(to_print: &Vec<usize>, rules: &HashMap<usize, HashSet<usize>>
 }
 
 fn get_middle(i_str: Vec<usize>) -> usize {
-fn get_middle(i_str: Vec<usize>) -> usize {
     let len = i_str.len();
     return i_str[(len - 1) / 2];
     return i_str[(len - 1) / 2];
@@ -147,15 +146,12 @@ fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where
     P: AsRef<Path>,
 {
-where
-    P: AsRef<Path>,
-{
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
 
 #[cfg(test)]
-mod tests {
+
 mod tests {
     use super::*;
     #[test]
