@@ -7,7 +7,7 @@ use std::time::Instant;
 
 fn main() {
     let now = Instant::now();
-    if let Ok(file_iter) = read_lines("input_1.txt") {}
+    if let Ok(file_iter) = read_lines("input_6.txt") {}
     println!("Finished in {:?}", now.elapsed());
 }
 
