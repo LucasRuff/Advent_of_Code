@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::path::Path;
 use std::time::Instant;
 
 fn main() {
@@ -63,6 +64,11 @@ fn process_input(
                     .map(|num| num.parse::<usize>().unwrap())
                     .collect(),
             );
+            page_list.push(
+                text.split(",")
+                    .map(|num| num.parse::<usize>().unwrap())
+                    .collect(),
+            );
         }
     }
     return (rule_list, page_list);
@@ -72,11 +78,23 @@ fn get_rules(rule_list: Vec::<String>) -> HashMap::<usize, Vec<usize>> {
     let mut new_rules = HashMap::<usize, Vec<usize>>::new();
     for rule in rule_list {
         let mut rule_chars = rule.chars();
-        let start = (vec![rule_chars.next().unwrap(),rule_chars.next().unwrap()]).into_iter().collect::<String>().parse::<usize>().unwrap();
+        let start = (vec![rule_chars.next().unwrap(), rule_chars.next().unwrap()])
+            .into_iter()
+            .collect::<String>()
+            .parse::<usize>()
+            .unwrap();
         _ = rule_chars.next();
-        let end = (vec![rule_chars.next().unwrap(),rule_chars.next().unwrap()]).into_iter().collect::<String>().parse::<usize>().unwrap();
-        new_rules.entry(start).and_modify(|afters| afters.push(end)).or_insert(vec![end]);
+        let end = (vec![rule_chars.next().unwrap(), rule_chars.next().unwrap()])
+            .into_iter()
+            .collect::<String>()
+            .parse::<usize>()
+            .unwrap();
+        new_rules
+            .entry(start)
+            .and_modify(|afters| afters.push(end))
+            .or_insert(vec![end]);
     }
+
 
     return new_rules;
 }
@@ -119,11 +137,16 @@ fn make_pass_rules(to_print: &Vec<usize>, rules: &HashMap<usize, HashSet<usize>>
 }
 
 fn get_middle(i_str: Vec<usize>) -> usize {
+fn get_middle(i_str: Vec<usize>) -> usize {
     let len = i_str.len();
+    return i_str[(len - 1) / 2];
     return i_str[(len - 1) / 2];
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+where
+    P: AsRef<Path>,
+{
 where
     P: AsRef<Path>,
 {
@@ -132,6 +155,7 @@ where
 }
 
 #[cfg(test)]
+mod tests {
 mod tests {
     use super::*;
     #[test]
@@ -167,6 +191,7 @@ mod tests {
     #[test]
     fn test_get_middle() {
         let test_str = vec![75, 47, 61, 53, 29];
+        let test_str = vec![75, 47, 61, 53, 29];
         assert_eq!(get_middle(test_str), 61);
     }
 
@@ -183,3 +208,4 @@ mod tests {
         );
     }
 }
+
