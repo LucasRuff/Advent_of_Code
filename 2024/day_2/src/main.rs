@@ -1,6 +1,6 @@
 use std::fs::File;
-use std::path::Path;
 use std::io::{self, BufRead};
+use std::path::Path;
 
 fn main() {
     if let Ok(file_iter) = read_lines("input_2.txt") {
@@ -13,7 +13,7 @@ fn count_safe_reports(reports: io::Lines<io::BufReader<File>>, dampener_enabled:
     let mut safe_count = 0;
     for report in reports {
         if let Ok(report_text) = report {
-            let levels: Vec::<&str> = report_text.split(" ").collect();
+            let levels: Vec<&str> = report_text.split(" ").collect();
             if dampener_enabled {
                 if is_report_safe(levels, false) {
                     safe_count += 1;
@@ -28,17 +28,17 @@ fn count_safe_reports(reports: io::Lines<io::BufReader<File>>, dampener_enabled:
     return safe_count;
 }
 
-fn is_report_safe(levels: Vec::<&str>, dampener_used: bool) -> bool {
+fn is_report_safe(levels: Vec<&str>, dampener_used: bool) -> bool {
     let num_levels = levels.len();
     let mut level_iter = levels.iter();
     let mut first_level;
-    'get_start: loop{
+    'get_start: loop {
         let starter = level_iter.next().unwrap().parse::<i32>();
         match starter {
             Ok(k) => {
                 first_level = k;
                 break 'get_start;
-            },
+            }
             Err(_) => continue 'get_start,
         }
     }
@@ -52,10 +52,10 @@ fn is_report_safe(levels: Vec::<&str>, dampener_used: bool) -> bool {
                 return false;
             } else {
                 for i in 0..num_levels {
-                    let mut second_half: Vec::<&str> = levels[i+1..].to_vec();
-                    let mut test_levels: Vec::<&str> = levels.clone();
+                    let mut second_half: Vec<&str> = levels[i + 1..].to_vec();
+                    let mut test_levels: Vec<&str> = levels.clone();
                     test_levels.truncate(i);
-                    
+
                     test_levels.append(&mut second_half);
                     println!("Testing new levels {:?}", test_levels);
                     if is_report_safe(test_levels, true) {
@@ -76,13 +76,15 @@ fn is_report_safe(levels: Vec::<&str>, dampener_used: bool) -> bool {
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where P: AsRef<Path>, {
+where
+    P: AsRef<Path>,
+{
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use super::*;
     #[test]
     fn overall_test_1() {

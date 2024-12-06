@@ -1,6 +1,6 @@
 use std::fs::File;
-use std::path::Path;
 use std::io::{self, BufRead};
+use std::path::Path;
 
 fn main() {
     if let Ok(file_iter) = read_lines("input_1.txt") {
@@ -14,8 +14,8 @@ fn main() {
 #[allow(dead_code)]
 fn calculate_total(file_iterator: io::Lines<io::BufReader<File>>) -> i32 {
     let mut total_inter: i32 = 0;
-    let mut left_list: Vec::<i32>;
-    let mut right_list: Vec::<i32>;
+    let mut left_list: Vec<i32>;
+    let mut right_list: Vec<i32>;
     (left_list, right_list) = get_lists(file_iterator);
     left_list.sort();
     right_list.sort();
@@ -27,12 +27,12 @@ fn calculate_total(file_iterator: io::Lines<io::BufReader<File>>) -> i32 {
 
 fn get_similarity(file_iterator: io::Lines<io::BufReader<File>>) -> i32 {
     let mut similarity_inter: i32 = 0;
-    let mut left_list: Vec::<i32>;
-    let mut right_list: Vec::<i32>;
+    let mut left_list: Vec<i32>;
+    let mut right_list: Vec<i32>;
     (left_list, right_list) = get_lists(file_iterator);
     left_list.sort();
     right_list.sort();
-    
+
     for num in left_list.iter() {
         let mut instance_counter = 0;
         for matcher in right_list.iter() {
@@ -45,9 +45,9 @@ fn get_similarity(file_iterator: io::Lines<io::BufReader<File>>) -> i32 {
     return similarity_inter;
 }
 
-fn get_lists(file_iterator: io::Lines<io::BufReader<File>>) -> (Vec::<i32>, Vec::<i32>) {
-    let mut left_list_builder: Vec::<i32> = Vec::new();
-    let mut right_list_builder: Vec::<i32> = Vec::new();
+fn get_lists(file_iterator: io::Lines<io::BufReader<File>>) -> (Vec<i32>, Vec<i32>) {
+    let mut left_list_builder: Vec<i32> = Vec::new();
+    let mut right_list_builder: Vec<i32> = Vec::new();
     for line in file_iterator {
         if let Ok(text) = line {
             let mut line_parts = text.split(" ");
@@ -59,13 +59,15 @@ fn get_lists(file_iterator: io::Lines<io::BufReader<File>>) -> (Vec::<i32>, Vec:
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where P: AsRef<Path>, {
+where
+    P: AsRef<Path>,
+{
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use super::*;
 
     #[test]
@@ -76,8 +78,8 @@ mod tests{
     }
     #[test]
     fn get_sides_test() {
-        let target_left = Vec::<i32>::from([3,4,2,1,3,3]);
-        let target_right = Vec::from([4,3,5,3,9,3]);
+        let target_left = Vec::<i32>::from([3, 4, 2, 1, 3, 3]);
+        let target_right = Vec::from([4, 3, 5, 3, 9, 3]);
         if let Ok(file_iter) = read_lines("test_input.txt") {
             assert_eq!(get_lists(file_iter), (target_left, target_right));
         }
