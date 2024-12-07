@@ -1,4 +1,4 @@
-use std::collections::{HashSet, HashMap};
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::num::Wrapping;
@@ -95,13 +95,82 @@ fn march_grid(
     return visited;
 }
 
+#[allow(dead_code)]
+fn old_detect_loop(
+    obs_loc: HashSet<(usize, usize)>,
+    start_loc: (usize, usize),
+    grid_size: (usize, usize),
+) -> bool {
+    let mut current_loc = start_loc;
+    let mut visited: HashSet<(usize, usize, Direction)> = HashSet::new();
+    let mut current_dir: Direction = Direction::North;
+    while current_loc.0 <= grid_size.0 && current_loc.1 <= grid_size.1 {
+        visited.insert((current_loc.0, current_loc.1, current_dir));
+        match current_dir {
+            Direction::North => {
+                if obs_loc.contains(&((Wrapping(current_loc.0) - Wrapping(1)).0, current_loc.1)) {
+                    current_dir = Direction::East;
+                    continue;
+                } else {
+                    current_loc = ((Wrapping(current_loc.0) - Wrapping(1)).0, current_loc.1);
+                    if visited.contains(&(current_loc.0, current_loc.1, current_dir)) {
+                        return true;
+                    } else {
+                        continue;
+                    }
+                }
+            }
+            Direction::South => {
+                if obs_loc.contains(&(current_loc.0 + 1, current_loc.1)) {
+                    current_dir = Direction::West;
+                    continue;
+                } else {
+                    current_loc = (current_loc.0 + 1, current_loc.1);
+                    if visited.contains(&(current_loc.0, current_loc.1, current_dir)) {
+                        return true;
+                    } else {
+                        continue;
+                    }
+                }
+            }
+            Direction::East => {
+                if obs_loc.contains(&(current_loc.0, current_loc.1 + 1)) {
+                    current_dir = Direction::South;
+                    continue;
+                } else {
+                    current_loc = (current_loc.0, current_loc.1 + 1);
+                    if visited.contains(&(current_loc.0, current_loc.1, current_dir)) {
+                        return true;
+                    } else {
+                        continue;
+                    }
+                }
+            }
+            Direction::West => {
+                if obs_loc.contains(&(current_loc.0, (Wrapping(current_loc.1) - Wrapping(1)).0)) {
+                    current_dir = Direction::North;
+                    continue;
+                } else {
+                    current_loc = (current_loc.0, (Wrapping(current_loc.1) - Wrapping(1)).0);
+                    if visited.contains(&(current_loc.0, current_loc.1, current_dir)) {
+                        return true;
+                    } else {
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
 fn detect_loop(
     obs_loc: HashSet<(usize, usize)>,
     start_loc: (usize, usize),
     grid_size: (usize, usize),
 ) -> bool {
     let mut current_loc = start_loc;
-    let mut visited: HashMap<(usize, usize), Vec<Direction>> = HashMap::new();
+    let mut visited: HashSet<(usize, usize, Direction)> = HashSet::new();
     let mut current_dir: Direction = Direction::North;
     'letsgo: loop {
         let mut new_loc;
@@ -117,17 +186,11 @@ fn detect_loop(
                     new_loc = ((Wrapping(current_loc.0) - Wrapping(1)).0, current_loc.1);
                 }
                 current_dir = Direction::East;
-                match visited.get(&current_loc) {
-                    Some(visited_dirs) => {
-                        if visited_dirs.contains(&current_dir) {
-                            return true;
-                        } else {
-                            visited.entry(current_loc).and_modify(|vd| vd.push(current_dir));
-                        }
-                    },
-                    None => {
-                        visited.insert(current_loc, Vec::from(&[current_dir.clone()]));
-                    }
+                if visited.contains(&(current_loc.0, current_loc.1, current_dir)) {
+                    return true;
+                } else {
+                    visited.insert((current_loc.0, current_loc.1, current_dir));
+                    continue 'letsgo;
                 }
             }
             Direction::South => {
@@ -141,17 +204,11 @@ fn detect_loop(
                     new_loc = (current_loc.0 + 1, current_loc.1);
                 }
                 current_dir = Direction::West;
-                match visited.get(&current_loc) {
-                    Some(visited_dirs) => {
-                        if visited_dirs.contains(&current_dir) {
-                            return true;
-                        } else {
-                            visited.entry(current_loc).and_modify(|vd| vd.push(current_dir));
-                        }
-                    },
-                    None => {
-                        visited.insert(current_loc, Vec::from(&[current_dir.clone()]));
-                    }
+                if visited.contains(&(current_loc.0, current_loc.1, current_dir)) {
+                    return true;
+                } else {
+                    visited.insert((current_loc.0, current_loc.1, current_dir));
+                    continue 'letsgo;
                 }
             }
             Direction::East => {
@@ -165,17 +222,11 @@ fn detect_loop(
                     new_loc = (current_loc.0, current_loc.1 + 1);
                 }
                 current_dir = Direction::South;
-                match visited.get(&current_loc) {
-                    Some(visited_dirs) => {
-                        if visited_dirs.contains(&current_dir) {
-                            return true;
-                        } else {
-                            visited.entry(current_loc).and_modify(|vd| vd.push(current_dir));
-                        }
-                    },
-                    None => {
-                        visited.insert(current_loc, Vec::from(&[current_dir.clone()]));
-                    }
+                if visited.contains(&(current_loc.0, current_loc.1, current_dir)) {
+                    return true;
+                } else {
+                    visited.insert((current_loc.0, current_loc.1, current_dir));
+                    continue 'letsgo;
                 }
             }
             Direction::West => {
@@ -189,17 +240,11 @@ fn detect_loop(
                     new_loc = (current_loc.0, (Wrapping(current_loc.1) - Wrapping(1)).0);
                 }
                 current_dir = Direction::North;
-                match visited.get(&current_loc) {
-                    Some(visited_dirs) => {
-                        if visited_dirs.contains(&current_dir) {
-                            return true;
-                        } else {
-                            visited.entry(current_loc).and_modify(|vd| vd.push(current_dir));
-                        }
-                    },
-                    None => {
-                        visited.insert(current_loc, Vec::from(&[current_dir.clone()]));
-                    }
+                if visited.contains(&(current_loc.0, current_loc.1, current_dir)) {
+                    return true;
+                } else {
+                    visited.insert((current_loc.0, current_loc.1, current_dir));
+                    continue 'letsgo;
                 }
             }
         }
