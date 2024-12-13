@@ -38,45 +38,67 @@ where
 fn find_first_split(parent_stone: u128, max_depth: usize) -> (usize, Option<Vec<u128>>) {
     let mut steps_taken = 0;
     let mut moving_val = parent_stone;
-    let mut num_digits = if moving_val != 0 {(moving_val.ilog10() + 1).try_into().unwrap()} else {1};
+    let mut num_digits = if moving_val != 0 {
+        (moving_val.ilog10() + 1).try_into().unwrap()
+    } else {
+        1
+    };
     while steps_taken <= max_depth {
         steps_taken += 1;
         match (num_digits % 2 == 0, moving_val == 0) {
-            (false,true) => {
+            (false, true) => {
                 moving_val = 1;
-            },
-            (true,_) => {
-                let (stone_1, stone_2) = (moving_val / 10_u128.pow(num_digits / 2), moving_val % (10_u128.pow(num_digits / 2)));
+            }
+            (true, _) => {
+                let (stone_1, stone_2) = (
+                    moving_val / 10_u128.pow(num_digits / 2),
+                    moving_val % (10_u128.pow(num_digits / 2)),
+                );
                 return (steps_taken, Some(vec![stone_1, stone_2]));
-
-            },
-            (false,false) => {
+            }
+            (false, false) => {
                 moving_val = moving_val * 2024;
-            },
+            }
         }
-        num_digits = if moving_val != 0 {(moving_val.ilog10() + 1).try_into().unwrap()} else {1};
+        num_digits = if moving_val != 0 {
+            (moving_val.ilog10() + 1).try_into().unwrap()
+        } else {
+            1
+        };
     }
     return (max_depth, None);
 }
 
-fn blink_stone_recurse(parent_stone: u128, depth: usize, max_depth: usize, start_memo: &mut HashMap<(u128, usize), usize>, iter_depth: usize) -> usize {
+fn blink_stone_recurse(
+    parent_stone: u128,
+    depth: usize,
+    max_depth: usize,
+    start_memo: &mut HashMap<(u128, usize), usize>,
+    iter_depth: usize,
+) -> usize {
     if depth == max_depth {
         return 1;
     }
     match start_memo.get(&(parent_stone, depth)) {
         Some(score) => {
             return *score;
-        },
+        }
         None => {
             let (split_depth, children) = find_first_split(parent_stone, max_depth);
             if split_depth + depth > max_depth {
-                start_memo.insert((parent_stone, depth),1);
+                start_memo.insert((parent_stone, depth), 1);
                 return 1;
             }
             let mut total = 0;
             if children.is_some() {
                 for child in children.unwrap().iter() {
-                    let child_score = blink_stone_recurse(*child, split_depth + depth, max_depth, start_memo, iter_depth + 1);
+                    let child_score = blink_stone_recurse(
+                        *child,
+                        split_depth + depth,
+                        max_depth,
+                        start_memo,
+                        iter_depth + 1,
+                    );
                     total += child_score;
                 }
 
@@ -85,7 +107,7 @@ fn blink_stone_recurse(parent_stone: u128, depth: usize, max_depth: usize, start
             }
             start_memo.insert((parent_stone, depth), 1);
             return 1;
-        },
+        }
     }
 }
 
@@ -98,7 +120,8 @@ fn blink_stone_short(stone: u128, depth: usize) -> usize {
         }
         let num_digits: u32 = (stone.ilog10() + 1).try_into().unwrap();
         if num_digits % 2 == 0 {
-            return blink_stone_short(stone / (10_u128.pow(num_digits / 2)), depth + 1) + blink_stone_short(stone % (10_u128.pow(num_digits / 2)), depth + 1);
+            return blink_stone_short(stone / (10_u128.pow(num_digits / 2)), depth + 1)
+                + blink_stone_short(stone % (10_u128.pow(num_digits / 2)), depth + 1);
         }
         return blink_stone_short(stone * 2024, depth + 1);
     }
