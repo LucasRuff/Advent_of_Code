@@ -18,8 +18,8 @@ fn main() {
                 None => continue,
             }
         }
-        println!("Part 1: {:?}", output);
-        let best_a = find_input(instructions, true);
+        println!("Part 1: {:?} in {:?}", output, now.elapsed());
+        let best_a = find_input(instructions, false);
 
         println!("Part 2: {:?}", best_a);
     }

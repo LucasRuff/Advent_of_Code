@@ -1,11 +1,10 @@
-
+use std::cmp::Ordering::{Equal, Greater, Less};
+use std::collections::{HashMap, HashSet};
+use std::fmt;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 use std::time::Instant;
-use std::cmp::Ordering::{Less, Equal, Greater};
-use std::fmt;
-use std::collections::{HashSet, HashMap};
 
 fn main() {
     let now = Instant::now();
@@ -16,17 +15,15 @@ fn main() {
     println!("Finished in {:?}", now.elapsed());
 }
 
-fn get_maze(
-    i_file: io::Lines<io::BufReader<File>>,
-) -> (Node, Maze){
-    let mut maze : Vec<Vec<char>> = Vec::new();
-    let (mut goal_x, mut goal_y) : (usize, usize) = (0,0);
+fn get_maze(i_file: io::Lines<io::BufReader<File>>) -> (Node, Maze) {
+    let mut maze: Vec<Vec<char>> = Vec::new();
+    let (mut goal_x, mut goal_y): (usize, usize) = (0, 0);
     let mut initial_x: usize = 0;
     let mut initial_y: usize = 0;
-    for (i,line) in i_file.enumerate() {
+    for (i, line) in i_file.enumerate() {
         let text = line.unwrap();
         let mut row_buffer: Vec<char> = Vec::new();
-        for (j,cha) in text.chars().enumerate() {
+        for (j, cha) in text.chars().enumerate() {
             if cha == 'E' {
                 goal_x = j;
                 goal_y = i;
@@ -41,11 +38,23 @@ fn get_maze(
         }
         maze.push(row_buffer);
     }
-    return (Node::origin((initial_y, initial_x)), Maze{map: maze, goal: (goal_y, goal_x)});
+    return (
+        Node::origin((initial_y, initial_x)),
+        Maze {
+            map: maze,
+            goal: (goal_y, goal_x),
+        },
+    );
 }
 
 fn navigate_maze(start_node: Node, mut maze: Maze, debug: bool) -> (usize, usize) {
-    let mut visited_nodes: HashMap</*location*/(usize, usize, Direction), (/*cost to go*/usize, /*possible parents*/Vec<(usize, usize, Direction)>)> = HashMap::new();
+    let mut visited_nodes: HashMap<
+        /*location*/ (usize, usize, Direction),
+        (
+            /*cost to go*/ usize,
+            /*possible parents*/ Vec<(usize, usize, Direction)>,
+        ),
+    > = HashMap::new();
     let mut frontier: Vec<Node> = vec![start_node];
     let mut best_cost: usize = std::usize::MAX;
     let mut seating: usize = 1;
@@ -58,9 +67,13 @@ fn navigate_maze(start_node: Node, mut maze: Maze, debug: bool) -> (usize, usize
                 best_cost = if current_node.cost_to_go <= best_cost {
                     mark_seating(&current_node, &visited_nodes, &mut maze, debug);
                     current_node.cost_to_go
-                } else {best_cost};
-                
-                if debug {println!("{}", maze);}
+                } else {
+                    best_cost
+                };
+
+                if debug {
+                    println!("{}", maze);
+                }
                 continue;
             }
 
@@ -69,12 +82,17 @@ fn navigate_maze(start_node: Node, mut maze: Maze, debug: bool) -> (usize, usize
                 match visited_nodes.get(&(child.p_y, child.p_x, child.dir)) {
                     Some(c) => {
                         if c.0 >= child.cost_to_go {
-                            visited_nodes.entry((child.p_y, child.p_x, child.dir)).and_modify(|d| d.1.push(child.parent));
+                            visited_nodes
+                                .entry((child.p_y, child.p_x, child.dir))
+                                .and_modify(|d| d.1.push(child.parent));
                             frontier.push(child);
                         }
-                    },
+                    }
                     None => {
-                        visited_nodes.insert((child.p_y, child.p_x, child.dir), (child.cost_to_go, vec![child.parent]));
+                        visited_nodes.insert(
+                            (child.p_y, child.p_x, child.dir),
+                            (child.cost_to_go, vec![child.parent]),
+                        );
                         if child.cost_to_go <= best_cost {
                             frontier.push(child);
                         }
@@ -83,22 +101,29 @@ fn navigate_maze(start_node: Node, mut maze: Maze, debug: bool) -> (usize, usize
             }
             frontier.sort();
             frontier.reverse();
-            if debug {println!("Current frontier:\n{:?}", frontier);}
+            if debug {
+                println!("Current frontier:\n{:?}", frontier);
+            }
         } else {
             break;
         }
     }
-    for (i,row) in maze.map.iter().enumerate() {
-        for (j,_) in row.iter().enumerate() {
+    for (i, row) in maze.map.iter().enumerate() {
+        for (j, _) in row.iter().enumerate() {
             if maze.map[i][j] == 'O' {
                 seating += 1;
             }
         }
     }
-    return (best_cost,seating);
+    return (best_cost, seating);
 }
 
-fn mark_seating(end_node: &Node, node_map: &HashMap<(usize, usize, Direction), (usize, Vec<(usize, usize, Direction)>)>, maze: &mut Maze, debug: bool) {
+fn mark_seating(
+    end_node: &Node,
+    node_map: &HashMap<(usize, usize, Direction), (usize, Vec<(usize, usize, Direction)>)>,
+    maze: &mut Maze,
+    debug: bool,
+) {
     let mut parent_front: Vec<(usize, usize, Direction)> = vec![end_node.parent];
     let mut visited_parents: HashSet<(usize, usize, Direction)> = HashSet::new();
     loop {
@@ -108,20 +133,24 @@ fn mark_seating(end_node: &Node, node_map: &HashMap<(usize, usize, Direction), (
                 match &node_map.get(&current_parent) {
                     Some((_, parents)) => {
                         for parent in parents {
-                            if *parent != (0,0,Direction::Right) && visited_parents.get(&parent).is_none() {
+                            if *parent != (0, 0, Direction::Right)
+                                && visited_parents.get(&parent).is_none()
+                            {
                                 parent_front.push(*parent);
                                 visited_parents.insert(*parent);
                             }
                         }
                         if debug {
-                            println!("Node {:?} is on best path, parent of {:?}", parents, current_parent);
+                            println!(
+                                "Node {:?} is on best path, parent of {:?}",
+                                parents, current_parent
+                            );
                             //println!("Current parent frontier: {:?}", parent_front);
                         }
-                    },
+                    }
                     None => continue,
                 }
-
-            },
+            }
             None => return,
         }
     }
@@ -147,16 +176,32 @@ struct Node {
 
 impl Node {
     fn new(parent: &Node, direction: Direction, goal: (usize, usize)) -> Node {
-        let px = parent.p_x + if direction==Direction::Right {1} else {0} - if direction==Direction::Left {1} else {0};
-        let py = parent.p_y + if direction==Direction::Down {1} else {0} - if direction==Direction::Up {1} else {0};
-        let cost = parent.cost_to_go + if direction==parent.dir {1} else {1001};
+        let px = parent.p_x + if direction == Direction::Right { 1 } else { 0 }
+            - if direction == Direction::Left { 1 } else { 0 };
+        let py = parent.p_y + if direction == Direction::Down { 1 } else { 0 }
+            - if direction == Direction::Up { 1 } else { 0 };
+        let cost = parent.cost_to_go + if direction == parent.dir { 1 } else { 1001 };
         let heur = goal.1 - px + py - goal.0 + cost;
-        
-        Node {p_x: px, p_y: py, dir: direction, cost_to_go: cost, heuristic: heur, parent: (parent.p_y, parent.p_x, parent.dir)}
+
+        Node {
+            p_x: px,
+            p_y: py,
+            dir: direction,
+            cost_to_go: cost,
+            heuristic: heur,
+            parent: (parent.p_y, parent.p_x, parent.dir),
+        }
     }
 
     fn origin(point: (usize, usize)) -> Node {
-        Node {p_x: point.1, p_y: point.0, dir: Direction::Right, cost_to_go: 0, heuristic: 0, parent: (0, 0, Direction::Right)}
+        Node {
+            p_x: point.1,
+            p_y: point.0,
+            dir: Direction::Right,
+            cost_to_go: 0,
+            heuristic: 0,
+            parent: (0, 0, Direction::Right),
+        }
     }
 
     fn generate_children(&self, maze: &Maze) -> Vec<Node> {
@@ -176,7 +221,6 @@ impl Node {
         return child_vec;
     }
 }
-
 
 impl Ord for Node {
     fn cmp(&self, other: &Node) -> std::cmp::Ordering {
@@ -249,7 +293,7 @@ mod tests {
         if let Ok(file_iter) = read_lines("test_input.txt") {
             let (initial_node, maze) = get_maze(file_iter);
             println!("{}", maze);
-            assert_eq!(maze.goal, (1,13));
+            assert_eq!(maze.goal, (1, 13));
             assert_eq!(initial_node.heuristic, 0);
             assert_eq!((initial_node.p_x, initial_node.p_y), (1, 13));
             assert_eq!(navigate_maze(initial_node, maze, true).0, 7036);
