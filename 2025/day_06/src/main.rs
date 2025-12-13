@@ -30,7 +30,7 @@ fn process_all_lines(lines: io::Lines<io::BufReader<File>>) -> (Vec<Vec<u64>>, V
     let mut operations: Vec<char> = Vec::new();
     for line in lines {
         if let Ok(ip) = line {
-            let mut nums_in_line = get_numbers_from_line(&ip);
+            let nums_in_line = get_numbers_from_line(&ip);
             if nums_in_line.is_empty() {
                 operations.extend(get_icons_from_line(&ip));
                 continue;
